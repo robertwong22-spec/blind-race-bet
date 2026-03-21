@@ -8,6 +8,10 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
+// ---- Change this password to whatever you like ----
+const ADMIN_PASSWORD = '111111aa';
+// ---------------------------------------------------
+
 let bets = {};
 let targetPlayers = 0;
 let gameStarted = false;
@@ -60,7 +64,11 @@ io.on('connection', (socket) => {
     io.emit('nameRound', { target: targetPlayers, raceCounter });
   });
 
-  socket.on('newRacingDay', () => {
+  socket.on('newRacingDay', (password) => {
+    if (password !== ADMIN_PASSWORD) {
+      socket.emit('authError', 'Incorrect password.');
+      return;
+    }
     bets = {};
     targetPlayers = 0;
     gameStarted = false;
