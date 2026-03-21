@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blind Race Bet</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #1a5e1a, #0d3d0d);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      padding-bottom: 70px;
+    }
+    .container {
+      max-width: 420px;
+      width: 90%;
+      padding: 20px;
+    }
+    .screen { display: none; text-align: center; }
+    .screen.active { display: block; }
+    h1 { font-size: 28px; margin-bottom: 20px; }
+    h2 { font-size: 22px; margin-bottom: 15px; }
+    input {
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      text-align: center;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+    }
+    .btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      font-weight: bold;
+      transition: opacity 0.2s;
+    }
+    .btn:active { opacity: 0.7; }
+    .btn-green { background: #4CAF50; color: white; }
+    .btn-blue { background: #2196F3; color: white; }
+    .btn-red { background: #f44336; color: white; }
+    .btn-gold { background: #FFD700; color: #333; }
+    .btn-small {
+      width: auto;
+      padding: 10px 16px;
+      font-size: 14px;
+      display: inline-block;
+      margin: 0 5px;
+    }
+    .status {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      font-size: 16px;
+    }
+    .bet-card {
+      background: rgba(255,255,255,0.15);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+      text-align: left;
+    }
+    .bet-card .name { font-weight: bold; font-size: 18px; color: #FFD700; }
+    .bet-card .bet { font-size: 16px; margin-top: 5px; }
+    .history-item {
+      background: rgba(255,255,255,0.1);
+      padding: 12px;
+      border-radius: 8px;
+      margin: 8px 0;
+      text-align: left;
+    }
+    .history-item h3 { color: #FFD700; margin-bottom: 8px; font-size: 16px; }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .modal.active { display: block; }
+    .modal-content {
+      max-width: 420px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .admin-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.85);
+      padding: 12px;
+      text-align: center;
+      z-index: 50;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+    .lock-icon { font-size: 50px; margin: 20px 0; }
+    .connecting { color: #FFD700; font-size: 14px; margin-bottom: 10px; }
+    .connected { color: #4CAF50; font-size: 14px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- SETUP SCREEN -->
+    <div class="screen active" id="setup">
+      <h1>🏇 Blind Race Bet</h1>
+      <h2>How many players?</h2>
+      <input type="number" id="playerCount" min="2" max="20" value="3">
+      <button class="btn btn-green" onclick="startGame()">Start</button>
+    </div>
+
+    <!-- NAME ROUND SCREEN -->
+    <div class="screen" id="nameRound">
+      <h1>🏇 Race <span id="raceNum"></span></h1>
+      <h2>Race Name</h2>
+      <input type="text" id="raceName" placeholder="e.g. 3:30 Ascot">
+      <button class="btn btn-green" onclick="setRaceName()">Start Race</button>
+    </div>
+
+    <!-- BETTING SCREEN -->
+    <div class="screen" id="betting">
+      <h1>🏇 <span id="currentRace"></span></h1>
+      <p id="connectionStatus" class="connecting">Connecting…</p>
+      <div id="betForm">
+        <input type="text" id="playerName" placeholder="Your name">
+        <input type="text" id="betInput" placeholder="Your bet">
+        <button class="btn btn-gold" onclick="lockBet()">🔒 Lock In Bet</button>
+      </div>
+      <div id="waitingMsg" style="display:none;">
+        <div class="lock-icon">🔒</div>
+        <p>Bet locked! Waiting for others…</p>
+      </div>
+      <div class="status" id="betStatus"></div>
+    </div>
+
+    <!-- REVEAL SCREEN -->
+    <div class="screen" id="reveal">
+      <h1>🏇 <span id="revealRace"></span></h1>
+      <div id="revealBets"></div>
+      <button class="btn btn-green" onclick="nextRace()">🏇 Next Race</button>
+      <button class="btn btn-blue" onclick="showHistory()">📋 History</button>
+    </div>
+
+  </div>
+
+  <!-- HISTORY MODAL -->
+  <div class="modal" id="historyModal">
+    <div class="modal-content">
+      <h2>📋 Race History</h2>
+      <div id="historyList"></div>
+      <br>
+      <button class="btn btn-blue" onclick="closeHistory()">Close</button>
+    </div>
+  </div>
+
+  <!-- ADMIN BAR (always visible at bottom) -->
+  <div class="admin-bar">
+    <button class="btn btn-blue btn-small" onclick="downloadBets()">📋 Download Bets</button>
+    <button class="btn btn-red btn-small" onclick="newDay()">🏇 New Racing Day</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let myName = '';
+    let allHistory = [];
+
+    // ===== SCREEN MANAGEMENT =====
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // ===== SETUP =====
+    function startGame() {
+      const num = document.getElementById('playerCount').value;
+      socket.emit('setPlayers', num);
+    }
+
+    // ===== NAME ROUND =====
+    function setRaceName() {
+      const name = document.getElementById('raceName').value.trim();
+      if (!name) return alert('Please enter a race name');
+      socket.emit('setRaceName', name);
+    }
+
+    // ===== BETTING =====
+    function lockBet() {
+      const name = document.getElementById('playerName').value.trim();
+      const bet = document.getElementById('betInput').value.trim();
+      if (!name || !bet) return alert('Enter your name and bet!');
+      myName = name;
+      socket.emit('placeBet', { name, bet });
+      document.getElementById('betForm').style.display = 'none';
+      document.getElementById('waitingMsg').style.display = 'block';
+    }
+
+    // ===== NEXT RACE =====
+    function nextRace() {
+      socket.emit('newRound');
+    }
+
+    // ===== HISTORY =====
+    function showHistory() {
+      const list = document.getElementById('historyList');
+      list.innerHTML = '';
+      if (allHistory.length === 0) {
+        list.innerHTML = '<p style="margin:20px 0;">No races yet.</p>';
+      }
+      allHistory.forEach((race, i) => {
+        let html = '<div class="history-item">';
+        html += '<h3>Race ' + (i + 1) + ': ' + race.raceName + '</h3>';
+        Object.entries(race.bets).forEach(([name, bet]) => {
+          html += '<div><strong>' + name + ':</strong> ' + bet + '</div>';
+        });
+        html += '</div>';
+        list.innerHTML += html;
+      });
+      document.getElementById('historyModal').classList.add('active');
+    }
+
+    function closeHistory() {
+      document.getElementById('historyModal').classList.remove('active');
+    }
+
+    // ===== ADMIN: DOWNLOAD =====
+    function downloadBets() {
+      if (allHistory.length === 0) {
+        return alert('No bets to download yet!');
+      }
+      window.location.href = '/download-bets';
+    }
+
+    // ===== ADMIN: NEW RACING DAY (password protected) =====
+    function newDay() {
+      const pw = prompt('Enter admin password:');
+      if (!pw) return;
+      fetch('/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pw })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          alert('Wrong password!');
+        } else {
+          alert('New racing day started!');
+          location.reload();
+        }
+      })
+      .catch(() => alert('Error resetting. Try again.'));
+    }
+
+    // ===== REVEAL DISPLAY =====
+    function showReveal(raceName, bets) {
+      showScreen('reveal');
+      document.getElementById('revealRace').textContent = raceName;
+      const container = document.getElementById('revealBets');
+      container.innerHTML = '';
+      Object.entries(bets).forEach(([name, bet]) => {
+        container.innerHTML +=
+          '<div class="bet-card">' +
+            '<div class="name">' + name + '</div>' +
+            '<div class="bet">' + bet + '</div>' +
+          '</div>';
+      });
+    }
+
+    // ===== SOCKET EVENTS =====
+
+    socket.on('connect', () => {
+      const el = document.getElementById('connectionStatus');
+      if (el) {
+        el.textContent = 'Connected ✓';
+        el.className = 'connected';
+      }
+    });
+
+    socket.on('disconnect', () => {
+      const el = document.getElementById('connectionStatus');
+      if (el) {
+        el.textContent = 'Reconnecting…';
+        el.className = 'connecting';
+      }
+    });
+
+    socket.on('state', (data) => {
+      allHistory = data.history || [];
+      if (!data.gameStarted) {
+        showScreen('setup');
+      } else if (data.revealed && data.bets) {
+        showReveal(data.raceName, data.bets);
+      } else if (data.raceName) {
+        showScreen('betting');
+        document.getElementById('currentRace').textContent = data.raceName;
+        document.getElementById('betStatus').textContent =
+          data.betCount + ' / ' + data.target + ' bets placed';
+        document.getElementById('betForm').style.display = 'block';
+        document.getElementById('waitingMsg').style.display = 'none';
+        if (myName) document.getElementById('playerName').value = myName;
+      } else {
+        showScreen('nameRound');
+        document.getElementById('raceNum').textContent = data.raceCounter;
+      }
+    });
+
+    socket.on('nameRound', (data) => {
+      showScreen('nameRound');
+      document.getElementById('raceNum').textContent = data.raceCounter;
+      document.getElementById('raceName').value = '';
+    });
+
+    socket.on('roundStart', (data) => {
+      showScreen('betting');
+      document.getElementById('currentRace').textContent = data.raceName;
+      document.getElementById('betForm').style.display = 'block';
+      document.getElementById('waitingMsg').style.display = 'none';
+      document.getElementById('betInput').value = '';
+      document.getElementById('betStatus').textContent =
+        '0 / ' + data.target + ' bets placed';
+      if (myName) document.getElementById('playerName').value = myName;
+    });
+
+    socket.on('betUpdate', (data) => {
+      document.getElementById('betStatus').textContent =
+        data.count + ' / ' + data.target + ' bets placed';
+    });
+
+    socket.on('reveal', (data) => {
+      allHistory = data.history || allHistory;
+      showReveal(data.raceName, data.bets);
+    });
+
+    socket.on('reset', () => {
+      location.reload();
+    });
+  </script>
+</body>
+</html>
