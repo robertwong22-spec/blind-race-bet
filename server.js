@@ -33,13 +33,13 @@ io.on('connection', (socket) => {
     history
   });
 
-  socket.on('setPlayers', (num) => {
-    targetPlayers = parseInt(num) || 3;
+socket.on('setPlayers', (num) => {
+    targetPlayers = Math.min(Math.max(parseInt(num) || 3, 2), 4);  // clamp 2–4
     gameStarted = true;
     bets = {};
     raceCounter++;
     io.emit('nameRound', { target: targetPlayers, raceCounter });
-  });
+});
 
   socket.on('setRaceName', (name) => {
     currentRaceName = name;
