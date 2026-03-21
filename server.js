@@ -1,4 +1,4 @@
-const express = require('express');
+-const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -7,11 +7,6 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static('public'));
-app.use(express.json());
-
-// ========== CHANGE THIS TO YOUR OWN PASSWORD ==========
-const ADMIN_PASSWORD = '111111aa';
-// =======================================================
 
 let bets = {};
 let targetPlayers = 0;
@@ -19,35 +14,6 @@ let gameStarted = false;
 let currentRaceName = '';
 let history = [];
 let raceCounter = 0;
-
-// Reset endpoint (password protected)
-app.post('/reset', (req, res) => {
-  if (req.body.password !== ADMIN_PASSWORD) {
-    return res.status(403).json({ error: 'Wrong password' });
-  }
-  bets = {};
-  targetPlayers = 0;
-  gameStarted = false;
-  currentRaceName = '';
-  history = [];
-  raceCounter = 0;
-  io.emit('reset');
-  res.json({ success: true });
-});
-
-// Download all bets as CSV
-app.get('/download-bets', (req, res) => {
-  let csv = 'Race Number,Race Name,Player,Bet\n';
-  history.forEach((race, index) => {
-    Object.entries(race.bets).forEach(([player, bet]) => {
-      // Wrap in quotes to handle commas in text
-      csv += `${index + 1},"${race.raceName}","${player}","${bet}"\n`;
-    });
-  });
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename=race-day-bets.csv');
-  res.send(csv);
-});
 
 io.on('connection', (socket) => {
   const count = Object.keys(bets).length;
@@ -67,7 +33,6 @@ io.on('connection', (socket) => {
     targetPlayers = parseInt(num) || 3;
     gameStarted = true;
     bets = {};
-    currentRaceName = '';
     raceCounter++;
     io.emit('nameRound', { target: targetPlayers, raceCounter });
   });
@@ -91,12 +56,21 @@ io.on('connection', (socket) => {
 
   socket.on('newRound', () => {
     bets = {};
-    currentRaceName = '';
     raceCounter++;
     io.emit('nameRound', { target: targetPlayers, raceCounter });
   });
+
+  socket.on('newRacingDay', () => {
+    bets = {};
+    targetPlayers = 0;
+    gameStarted = false;
+    currentRaceName = '';
+    history = [];
+    raceCounter = 0;
+    io.emit('resetAll');
+  });
 });
 
-server.listen(process.env.PORT || 3000, '0.0.0.0', () => {
-  console.log('Server running');
+server.listen(3000, () => {
+  console.log('Server running at http://localhost:3000');
 });
