@@ -34,7 +34,9 @@ io.on('connection', (socket) => {
   });
 
 socket.on('setPlayers', (num) => {
-    targetPlayers = Math.min(Math.max(parseInt(num) || 3, 2), 4);  // clamp 2–4
+    console.log('RAW INPUT:', num);
+    targetPlayers = Math.min(Math.max(parseInt(num) || 3, 2), 4);
+    console.log('CLAMPED TO:', targetPlayers);
     gameStarted = true;
     bets = {};
     raceCounter++;
