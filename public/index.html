@@ -390,13 +390,13 @@
     <button class="btn-primary" onclick="submitRaceName()">Open Betting</button>
   </div>
 
-  <!-- SCREEN: Place bet -->
+<!-- SCREEN: Place bet -->
   <div id="betScreen" class="container hidden">
     <h2 id="raceTitle">Race</h2>
     <label for="playerName">Your name:</label>
-    <input type="text" id="playerName" placeholder="Name" />
+    <input type="text" id="playerName" />
     <label for="betInput">Your bet:</label>
-    <textarea id="betInput" placeholder="Enter your selections...&#10;e.g.&#10;Win: Horse A&#10;Place: Horse B&#10;Each-way: Horse C"></textarea>
+    <textarea id="betInput"></textarea>
     <button class="btn-primary" onclick="submitBet()">Submit Bet</button>
     <p id="betStatus" class="status"></p>
   </div>
@@ -421,7 +421,7 @@
       </div>
       <div class="reveal-buttons-right">
         <button class="btn-download" onclick="downloadHistory()">📥 Download</button>
-        <button class="btn-newrace" onclick="showPasswordModal()">Newrace</button>
+        <button class="btn-newrace" onclick="showPasswordModal()">Newday</button>
       </div>
     </div>
     <div id="historyContainer" class="history-section hidden"></div>
