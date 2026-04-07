@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
     history
   });
 
-socket.on('setPlayers', (num) => {
+  socket.on('setPlayers', (num) => {
     console.log('RAW INPUT:', num);
     targetPlayers = Math.min(Math.max(parseInt(num) || 3, 2), 4);
     console.log('CLAMPED TO:', targetPlayers);
@@ -41,10 +41,22 @@ socket.on('setPlayers', (num) => {
     bets = {};
     raceCounter++;
     io.emit('nameRound', { target: targetPlayers, raceCounter });
-});
+  });
 
   socket.on('setRaceName', (name) => {
     currentRaceName = name;
+    
+    // Parse the race number if the name matches "R" followed by a number
+    // This handles corrections like changing "R6" to "R8"
+    const match = name.match(/^R(\d+)$/i);
+    if (match) {
+      const raceNum = parseInt(match[1], 10);
+      if (!isNaN(raceNum)) {
+        raceCounter = raceNum;  // Update counter to match the corrected value
+        console.log('Race counter updated to:', raceCounter);
+      }
+    }
+    
     bets = {};
     io.emit('roundStart', { target: targetPlayers, raceName: currentRaceName });
   });
