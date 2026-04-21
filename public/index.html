@@ -369,6 +369,60 @@
       gap: 10px;
       justify-content: center;
     }
+    .total-bar {
+  background: linear-gradient(to right, #f1c40f, #f39c12);
+  color: #1a1a2e;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.1em;
+  text-align: center;
+}
+
+.submitted-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.submitted-list .player-chip {
+  background: #27ae60;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.eject-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  text-align: center;
+}
+
+.eject-section p {
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.btn-eject {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-eject:hover {
+  box-shadow: 0 4px 15px rgba(231,76,60,0.4);
+}
   </style>
 </head>
 <body>
@@ -390,7 +444,9 @@
     <button class="btn-primary" onclick="submitRaceName()">Open Betting</button>
   </div>
 
-<div id="betScreen" class="screen">
+<!-- SCREEN: Betting -->
+<div id="betScreen" class="container hidden">
+  <h2 id="raceTitle">Race</h2>
   <label>Your name:</label>
   <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
   
@@ -398,9 +454,19 @@
   <textarea id="betInput" placeholder="Enter your bet details..." rows="3"></textarea>
   
   <div style="display: flex; gap: 10px; align-items: center; margin: 15px 0;">
-    <button class="btn" onclick="submitBet()">Submit Bet</button>
-    <div class="total-bar" style="flex: 1; margin: 0;">Total: $<span id="totalAmount">0</span></div>
+    <button class="btn-primary" onclick="submitBet()">Submit Bet</button>
+    <div class="total-bar" style="flex: 1;">Total: $<span id="totalAmount">0</span></div>
   </div>
+  
+  <p class="status" id="betStatus">0 / 3 bets placed</p>
+  
+  <div id="submittedList" class="submitted-list"></div>
+  
+  <div class="eject-section">
+    <p>Race started? Force reveal all bets now.</p>
+    <button class="btn-eject" onclick="showEjectModal()">⏏ Eject</button>
+  </div>
+</div>
   
   <p class="status" id="statusText">Waiting for bets...</p>
   
