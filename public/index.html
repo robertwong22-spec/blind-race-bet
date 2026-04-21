@@ -390,16 +390,27 @@
     <button class="btn-primary" onclick="submitRaceName()">Open Betting</button>
   </div>
 
-<!-- SCREEN: Place bet -->
-  <div id="betScreen" class="container hidden">
-    <h2 id="raceTitle">Race</h2>
-    <label for="playerName">Your name:</label>
-    <input type="text" id="playerName" />
-    <label for="betInput">Your bet:</label>
-    <textarea id="betInput"></textarea>
-    <button class="btn-primary" onclick="submitBet()">Submit Bet</button>
-    <p id="betStatus" class="status"></p>
+<div id="betScreen" class="screen">
+  <label>Your name:</label>
+  <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+  
+  <label>Your bet:</label>
+  <textarea id="betInput" placeholder="Enter your bet details..." rows="3"></textarea>
+  
+  <div style="display: flex; gap: 10px; align-items: center; margin: 15px 0;">
+    <button class="btn" onclick="submitBet()">Submit Bet</button>
+    <div class="total-bar" style="flex: 1; margin: 0;">Total: $<span id="totalAmount">0</span></div>
   </div>
+  
+  <p class="status" id="statusText">Waiting for bets...</p>
+  
+  <div id="submittedList" class="submitted-list"></div>
+  
+  <div class="eject-section">
+    <p>Race started? Force reveal all bets now.</p>
+    <button class="btn-eject" onclick="showEjectModal()">⏏ Eject</button>
+  </div>
+</div>
 
   <!-- SCREEN: Submitted waiting -->
   <div id="waitingScreen" class="container hidden">
